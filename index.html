@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pushup Challenge App</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
     <style>
         * {
             margin: 0;
@@ -19,23 +15,16 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
             min-height: 100vh;
+            padding: 1rem;
         }
         
         .container {
-            min-height: 100vh;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .app-card {
+            max-width: 28rem;
+            margin: 0 auto;
             background: white;
             border-radius: 1.5rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             padding: 1.5rem;
-            width: 100%;
-            max-width: 28rem;
         }
         
         .header {
@@ -82,6 +71,7 @@
             justify-content: center;
             cursor: pointer;
             transition: background-color 0.2s;
+            font-size: 1.2rem;
         }
         
         .add-user-btn:hover {
@@ -142,6 +132,15 @@
             background: #4b5563;
         }
         
+        .btn-blue {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-blue:hover {
+            background: #2563eb;
+        }
+        
         .user-list {
             display: flex;
             flex-direction: column;
@@ -181,6 +180,7 @@
             align-items: center;
             justify-content: center;
             color: white;
+            font-weight: bold;
         }
         
         .user-details h3 {
@@ -218,13 +218,6 @@
         .empty-state {
             text-align: center;
             padding: 3rem 0;
-        }
-        
-        .empty-state svg {
-            width: 4rem;
-            height: 4rem;
-            color: #d1d5db;
-            margin: 0 auto 1rem;
         }
         
         .empty-state p {
@@ -394,306 +387,319 @@
         .phase-2 { background: #3b82f6; }
         .phase-3 { background: #8b5cf6; }
         .phase-4 { background: #f59e0b; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { User, Plus, Check, Target, Calendar, Trophy, Users } = lucide;
-        
-        const PushupChallengeApp = () => {
-            const [users, setUsers] = useState([]);
-            const [selectedUser, setSelectedUser] = useState(null);
-            const [newUserName, setNewUserName] = useState('');
-            const [showAddUser, setShowAddUser] = useState(false);
+    <div id="app" class="container">
+        <!-- Schermata principale -->
+        <div id="main-screen">
+            <div class="header">
+                <h1>Pushup Challenge</h1>
+                <p>7 giorni × 50 → 21 giorni × 100 → 21 giorni × 200</p>
+            </div>
 
-            useEffect(() => {
-                const savedUsers = JSON.parse(localStorage.getItem('pushupUsers') || '[]');
-                setUsers(savedUsers);
-            }, []);
+            <div class="users-header">
+                <h2 class="users-title">
+                    👥 Utenti (<span id="user-count">0</span>)
+                </h2>
+                <button id="add-user-btn" class="add-user-btn">+</button>
+            </div>
 
-            useEffect(() => {
-                localStorage.setItem('pushupUsers', JSON.stringify(users));
-            }, [users]);
+            <div id="add-user-form" class="add-user-form hidden">
+                <div class="form-row">
+                    <input type="text" id="new-user-name" placeholder="Nome utente" class="form-input">
+                    <button id="save-user-btn" class="btn btn-green">Aggiungi</button>
+                    <button id="cancel-user-btn" class="btn btn-gray">Annulla</button>
+                </div>
+            </div>
 
-            const addUser = () => {
-                if (newUserName.trim()) {
-                    const newUser = {
-                        id: Date.now(),
-                        name: newUserName,
-                        startDate: new Date().toISOString().split('T')[0],
-                        dailyProgress: {},
-                        currentStreak: 0,
-                        totalPushups: 0
-                    };
-                    setUsers([...users, newUser]);
-                    setNewUserName('');
-                    setShowAddUser(false);
-                }
-            };
+            <div id="user-list" class="user-list"></div>
 
-            const getCurrentPhase = (startDate) => {
-                const start = new Date(startDate);
-                const today = new Date();
-                const daysPassed = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-                
-                if (daysPassed < 7) {
-                    return { phase: 1, target: 50, daysInPhase: daysPassed + 1, totalDays: 7 };
-                } else if (daysPassed < 28) {
-                    return { phase: 2, target: 100, daysInPhase: daysPassed - 6, totalDays: 21 };
-                } else if (daysPassed < 49) {
-                    return { phase: 3, target: 200, daysInPhase: daysPassed - 27, totalDays: 21 };
-                } else {
-                    return { phase: 4, target: 0, daysInPhase: 0, totalDays: 0 };
-                }
-            };
+            <div id="empty-state" class="empty-state">
+                <p>👥</p>
+                <p>Nessun utente registrato</p>
+                <button id="add-first-user-btn" class="btn btn-blue">Aggiungi primo utente</button>
+            </div>
+        </div>
 
-            const getTodayKey = () => {
-                return new Date().toISOString().split('T')[0];
-            };
+        <!-- Schermata utente -->
+        <div id="user-screen" class="hidden">
+            <div class="user-header">
+                <button id="back-btn" class="back-btn">←</button>
+                <h1 id="current-user-name" class="user-name"></h1>
+                <div style="width: 2rem;"></div>
+            </div>
 
-            const addPushups = (userId, count) => {
-                const todayKey = getTodayKey();
-                setUsers(users.map(user => {
-                    if (user.id === userId) {
-                        const newDailyProgress = { ...user.dailyProgress };
-                        newDailyProgress[todayKey] = (newDailyProgress[todayKey] || 0) + count;
-                        
-                        return {
-                            ...user,
-                            dailyProgress: newDailyProgress,
-                            totalPushups: user.totalPushups + count
-                        };
-                    }
-                    return user;
-                }));
-            };
-
-            const getTodayProgress = (user) => {
-                const todayKey = getTodayKey();
-                return user.dailyProgress[todayKey] || 0;
-            };
-
-            const getPhaseText = (phase) => {
-                switch (phase) {
-                    case 1: return 'Fase 1 - Riscaldamento';
-                    case 2: return 'Fase 2 - Resistenza';
-                    case 3: return 'Fase 3 - Potenza';
-                    case 4: return 'Challenge Completata!';
-                    default: return '';
-                }
-            };
-
-            if (selectedUser) {
-                const user = users.find(u => u.id === selectedUser);
-                const phaseInfo = getCurrentPhase(user.startDate);
-                const todayProgress = getTodayProgress(user);
-                const progressPercentage = phaseInfo.target > 0 ? (todayProgress / phaseInfo.target) * 100 : 100;
-
-                return (
-                    <div className="container">
-                        <div className="app-card">
-                            <div className="user-header">
-                                <button
-                                    onClick={() => setSelectedUser(null)}
-                                    className="back-btn"
-                                >
-                                    ←
-                                </button>
-                                <h1 className="user-name">{user.name}</h1>
-                                <div style={{width: '2rem'}}></div>
-                            </div>
-
-                            <div className={`phase-card phase-${phaseInfo.phase}`}>
-                                <div className="phase-header">
-                                    <div className="phase-title">
-                                        <h2>{getPhaseText(phaseInfo.phase)}</h2>
-                                        <p>
-                                            {phaseInfo.phase < 4 ? 
-                                                `Giorno ${phaseInfo.daysInPhase} di ${phaseInfo.totalDays}` : 
-                                                'Congratulazioni! 🎉'
-                                            }
-                                        </p>
-                                    </div>
-                                    <Target size={32} style={{opacity: 0.8}} />
-                                </div>
-
-                                {phaseInfo.phase < 4 && (
-                                    <div className="phase-progress">
-                                        <div className="progress-text">
-                                            <span style={{opacity: 0.9}}>Obiettivo giornaliero</span>
-                                            <span style={{fontWeight: 'bold'}}>{todayProgress}/{phaseInfo.target}</span>
-                                        </div>
-                                        <div className="progress-bar">
-                                            <div 
-                                                className="progress-fill"
-                                                style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {phaseInfo.phase < 4 && (
-                                <div className="button-grid">
-                                    <div className="button-grid grid-3">
-                                        {[5, 10, 15].map(count => (
-                                            <button
-                                                key={count}
-                                                onClick={() => addPushups(user.id, count)}
-                                                className="pushup-btn"
-                                            >
-                                                +{count}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className="button-grid grid-2">
-                                        {[25, 50].map(count => (
-                                            <button
-                                                key={count}
-                                                onClick={() => addPushups(user.id, count)}
-                                                className="pushup-btn pushup-btn-green"
-                                            >
-                                                +{count}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="stats-card">
-                                <div className="stats-content">
-                                    <div className="stats-label">
-                                        <Trophy size={20} color="#eab308" />
-                                        <span>Totale pushups</span>
-                                    </div>
-                                    <span className="stats-value">{user.totalPushups}</span>
-                                </div>
-                            </div>
-
-                            {todayProgress >= phaseInfo.target && phaseInfo.phase < 4 && (
-                                <div className="success-card">
-                                    <div className="success-content">
-                                        <Check size={20} />
-                                        <span>Obiettivo giornaliero completato!</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+            <div id="phase-card" class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title">
+                        <h2 id="phase-title"></h2>
+                        <p id="phase-days"></p>
                     </div>
-                );
-            }
+                    <span style="font-size: 2rem;">🎯</span>
+                </div>
 
-            return (
-                <div className="container">
-                    <div className="app-card">
-                        <div className="header">
-                            <h1>Pushup Challenge</h1>
-                            <p>7 giorni × 50 → 21 giorni × 100 → 21 giorni × 200</p>
-                        </div>
-
-                        <div className="users-header">
-                            <h2 className="users-title">
-                                <Users size={20} />
-                                Utenti ({users.length})
-                            </h2>
-                            <button
-                                onClick={() => setShowAddUser(true)}
-                                className="add-user-btn"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        </div>
-
-                        {showAddUser && (
-                            <div className="add-user-form">
-                                <div className="form-row">
-                                    <input
-                                        type="text"
-                                        value={newUserName}
-                                        onChange={(e) => setNewUserName(e.target.value)}
-                                        placeholder="Nome utente"
-                                        className="form-input"
-                                        onKeyPress={(e) => e.key === 'Enter' && addUser()}
-                                    />
-                                    <button
-                                        onClick={addUser}
-                                        className="btn btn-green"
-                                    >
-                                        Aggiungi
-                                    </button>
-                                    <button
-                                        onClick={() => setShowAddUser(false)}
-                                        className="btn btn-gray"
-                                    >
-                                        Annulla
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="user-list">
-                            {users.map(user => {
-                                const phaseInfo = getCurrentPhase(user.startDate);
-                                const todayProgress = getTodayProgress(user);
-                                const isCompleted = todayProgress >= phaseInfo.target;
-                                
-                                return (
-                                    <div
-                                        key={user.id}
-                                        onClick={() => setSelectedUser(user.id)}
-                                        className="user-item"
-                                    >
-                                        <div className="user-content">
-                                            <div className="user-info">
-                                                <div className="user-avatar">
-                                                    <User size={20} />
-                                                </div>
-                                                <div className="user-details">
-                                                    <h3>{user.name}</h3>
-                                                    <p>{getPhaseText(phaseInfo.phase)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="user-progress">
-                                                <div className="progress-main">
-                                                    {isCompleted && phaseInfo.phase < 4 && (
-                                                        <Check size={16} color="#10b981" />
-                                                    )}
-                                                    <span>
-                                                        {phaseInfo.phase < 4 ? `${todayProgress}/${phaseInfo.target}` : '✓'}
-                                                    </span>
-                                                </div>
-                                                <p className="progress-total">
-                                                    Totale: {user.totalPushups}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {users.length === 0 && (
-                            <div className="empty-state">
-                                <Users size={64} />
-                                <p>Nessun utente registrato</p>
-                                <button
-                                    onClick={() => setShowAddUser(true)}
-                                    className="btn btn-blue"
-                                    style={{background: '#3b82f6', color: 'white'}}
-                                >
-                                    Aggiungi primo utente
-                                </button>
-                            </div>
-                        )}
+                <div id="phase-progress" class="phase-progress">
+                    <div class="progress-text">
+                        <span style="opacity: 0.9;">Obiettivo giornaliero</span>
+                        <span id="progress-text" style="font-weight: bold;"></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
                     </div>
                 </div>
-            );
-        };
+            </div>
 
-        ReactDOM.render(<PushupChallengeApp />, document.getElementById('root'));
+            <div id="pushup-buttons" class="button-grid">
+                <div class="button-grid grid-3">
+                    <button class="pushup-btn" onclick="addPushups(5)">+5</button>
+                    <button class="pushup-btn" onclick="addPushups(10)">+10</button>
+                    <button class="pushup-btn" onclick="addPushups(15)">+15</button>
+                </div>
+                <div class="button-grid grid-2">
+                    <button class="pushup-btn pushup-btn-green" onclick="addPushups(25)">+25</button>
+                    <button class="pushup-btn pushup-btn-green" onclick="addPushups(50)">+50</button>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-label">
+                        <span style="color: #eab308;">🏆</span>
+                        <span>Totale pushups</span>
+                    </div>
+                    <span id="total-pushups" class="stats-value">0</span>
+                </div>
+            </div>
+
+            <div id="success-card" class="success-card hidden">
+                <div class="success-content">
+                    <span style="color: #10b981;">✓</span>
+                    <span>Obiettivo giornaliero completato!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let users = [];
+        let currentUser = null;
+
+        // Carica dati dal localStorage
+        function loadUsers() {
+            const saved = localStorage.getItem('pushupUsers');
+            users = saved ? JSON.parse(saved) : [];
+            updateUserList();
+        }
+
+        // Salva dati nel localStorage
+        function saveUsers() {
+            localStorage.setItem('pushupUsers', JSON.stringify(users));
+        }
+
+        // Calcola la fase corrente
+        function getCurrentPhase(startDate) {
+            const start = new Date(startDate);
+            const today = new Date();
+            const daysPassed = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+            
+            if (daysPassed < 7) {
+                return { phase: 1, target: 50, daysInPhase: daysPassed + 1, totalDays: 7 };
+            } else if (daysPassed < 28) {
+                return { phase: 2, target: 100, daysInPhase: daysPassed - 6, totalDays: 21 };
+            } else if (daysPassed < 49) {
+                return { phase: 3, target: 200, daysInPhase: daysPassed - 27, totalDays: 21 };
+            } else {
+                return { phase: 4, target: 0, daysInPhase: 0, totalDays: 0 };
+            }
+        }
+
+        // Ottieni la chiave di oggi
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Ottieni i progressi di oggi
+        function getTodayProgress(user) {
+            const todayKey = getTodayKey();
+            return user.dailyProgress[todayKey] || 0;
+        }
+
+        // Testo della fase
+        function getPhaseText(phase) {
+            switch (phase) {
+                case 1: return 'Fase 1 - Riscaldamento';
+                case 2: return 'Fase 2 - Resistenza';
+                case 3: return 'Fase 3 - Potenza';
+                case 4: return 'Challenge Completata!';
+                default: return '';
+            }
+        }
+
+        // Aggiungi pushups
+        function addPushups(count) {
+            if (!currentUser) return;
+            
+            const todayKey = getTodayKey();
+            const user = users.find(u => u.id === currentUser.id);
+            
+            if (!user.dailyProgress[todayKey]) {
+                user.dailyProgress[todayKey] = 0;
+            }
+            
+            user.dailyProgress[todayKey] += count;
+            user.totalPushups += count;
+            
+            saveUsers();
+            updateUserScreen();
+        }
+
+        // Aggiorna lista utenti
+        function updateUserList() {
+            const userList = document.getElementById('user-list');
+            const emptyState = document.getElementById('empty-state');
+            const userCount = document.getElementById('user-count');
+            
+            userCount.textContent = users.length;
+            
+            if (users.length === 0) {
+                userList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                userList.innerHTML = users.map(user => {
+                    const phaseInfo = getCurrentPhase(user.startDate);
+                    const todayProgress = getTodayProgress(user);
+                    const isCompleted = todayProgress >= phaseInfo.target;
+                    
+                    return `
+                        <div class="user-item" onclick="selectUser(${user.id})">
+                            <div class="user-content">
+                                <div class="user-info">
+                                    <div class="user-avatar">👤</div>
+                                    <div class="user-details">
+                                        <h3>${user.name}</h3>
+                                        <p>${getPhaseText(phaseInfo.phase)}</p>
+                                    </div>
+                                </div>
+                                <div class="user-progress">
+                                    <div class="progress-main">
+                                        ${isCompleted && phaseInfo.phase < 4 ? '<span style="color: #10b981;">✓</span>' : ''}
+                                        <span>
+                                            ${phaseInfo.phase < 4 ? `${todayProgress}/${phaseInfo.target}` : '✓'}
+                                        </span>
+                                    </div>
+                                    <p class="progress-total">Totale: ${user.totalPushups}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Seleziona utente
+        function selectUser(userId) {
+            currentUser = users.find(u => u.id === userId);
+            showUserScreen();
+        }
+
+        // Mostra schermata utente
+        function showUserScreen() {
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('user-screen').classList.remove('hidden');
+            updateUserScreen();
+        }
+
+        // Mostra schermata principale
+        function showMainScreen() {
+            document.getElementById('user-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            currentUser = null;
+            updateUserList();
+        }
+
+        // Aggiorna schermata utente
+        function updateUserScreen() {
+            if (!currentUser) return;
+            
+            const phaseInfo = getCurrentPhase(currentUser.startDate);
+            const todayProgress = getTodayProgress(currentUser);
+            const progressPercentage = phaseInfo.target > 0 ? (todayProgress / phaseInfo.target) * 100 : 100;
+            
+            document.getElementById('current-user-name').textContent = currentUser.name;
+            document.getElementById('phase-title').textContent = getPhaseText(phaseInfo.phase);
+            document.getElementById('phase-days').textContent = 
+                phaseInfo.phase < 4 ? `Giorno ${phaseInfo.daysInPhase} di ${phaseInfo.totalDays}` : 'Congratulazioni! 🎉';
+            
+            const phaseCard = document.getElementById('phase-card');
+            phaseCard.className = `phase-card phase-${phaseInfo.phase}`;
+            
+            if (phaseInfo.phase < 4) {
+                document.getElementById('progress-text').textContent = `${todayProgress}/${phaseInfo.target}`;
+                document.getElementById('progress-fill').style.width = `${Math.min(progressPercentage, 100)}%`;
+                document.getElementById('phase-progress').classList.remove('hidden');
+                document.getElementById('pushup-buttons').classList.remove('hidden');
+            } else {
+                document.getElementById('phase-progress').classList.add('hidden');
+                document.getElementById('pushup-buttons').classList.add('hidden');
+            }
+            
+            document.getElementById('total-pushups').textContent = currentUser.totalPushups;
+            
+            const successCard = document.getElementById('success-card');
+            if (todayProgress >= phaseInfo.target && phaseInfo.phase < 4) {
+                successCard.classList.remove('hidden');
+            } else {
+                successCard.classList.add('hidden');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('add-user-btn').addEventListener('click', () => {
+            document.getElementById('add-user-form').classList.remove('hidden');
+        });
+
+        document.getElementById('add-first-user-btn').addEventListener('click', () => {
+            document.getElementById('add-user-form').classList.remove('hidden');
+        });
+
+        document.getElementById('cancel-user-btn').addEventListener('click', () => {
+            document.getElementById('add-user-form').classList.add('hidden');
+            document.getElementById('new-user-name').value = '';
+        });
+
+        document.getElementById('save-user-btn').addEventListener('click', () => {
+            const name = document.getElementById('new-user-name').value.trim();
+            if (name) {
+                const newUser = {
+                    id: Date.now(),
+                    name: name,
+                    startDate: new Date().toISOString().split('T')[0],
+                    dailyProgress: {},
+                    totalPushups: 0
+                };
+                users.push(newUser);
+                saveUsers();
+                updateUserList();
+                document.getElementById('add-user-form').classList.add('hidden');
+                document.getElementById('new-user-name').value = '';
+            }
+        });
+
+        document.getElementById('new-user-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('save-user-btn').click();
+            }
+        });
+
+        document.getElementById('back-btn').addEventListener('click', showMainScreen);
+
+        // Inizializza app
+        loadUsers();
     </script>
 </body>
 </html>
